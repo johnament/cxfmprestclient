@@ -19,27 +19,102 @@
 
 package org.apache.cxf.client.microprofile;
 
-import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
-import org.eclipse.microprofile.rest.client.TypeSafeClientBuilder;
+import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
+import org.eclipse.microprofile.rest.client.annotation.RegisterProviders;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import javax.ws.rs.core.Configuration;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-public class CxfTypeSafeClientBuilder extends TypeSafeClientBuilder {
-    private URI baseUri;
-    @Override
-    public TypeSafeClientBuilder baseUrl(URL url) {
-        try {
-            this.baseUri = Objects.requireNonNull(url).toURI();
-            return this;
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Unable to parse URL "+url,e);
-        }
+import static java.util.Arrays.asList;
+
+public class CxfTypeSafeClientBuilder extends RestClientBuilder {
+    private String baseUri;
+    private Map<String, Object> properties;
+    private List<Object> providers;
+
+    public CxfTypeSafeClientBuilder() {
+        this.properties = new HashMap<>();
+        this.providers = new ArrayList<>();
     }
+
     @Override
-    public <T> T proxy(Class<T> aClass) {
-        return JAXRSClientFactory.create(baseUri, aClass);
+    public RestClientBuilder baseUrl(URL url) {
+        this.baseUri = Objects.requireNonNull(url).toExternalForm();
+        return this;
+    }
+
+    @Override
+    public <T> T build(Class<T> aClass) {
+        RegisterProviders providers = aClass.getAnnotation(RegisterProviders.class);
+        List<Object> providerClasses = new ArrayList<>();
+        providerClasses.addAll(this.providers);
+        if (providers != null) {
+            providerClasses.addAll(asList(providers.value()));
+        }
+        JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
+        bean.setAddress(baseUri);
+        bean.setServiceClass(aClass);
+        bean.setProviders(providerClasses);
+        bean.setProperties(properties);
+        return bean.create(aClass);
+    }
+
+    @Override
+    public Configuration getConfiguration() {
+        return null;
+    }
+
+    @Override
+    public RestClientBuilder property(String s, Object o) {
+        this.properties.put(s,o);
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Class<?> providerClass) {
+        this.providers.add(providerClass);
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Class<?> aClass, int i) {
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Class<?> aClass, Class<?>... classes) {
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Class<?> aClass, Map<Class<?>, Integer> map) {
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Object o) {
+        this.providers.add(o);
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Object o, int i) {
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Object o, Class<?>... classes) {
+        return this;
+    }
+
+    @Override
+    public RestClientBuilder register(Object o, Map<Class<?>, Integer> map) {
+        return this;
     }
 }
