@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import static java.util.Arrays.asList;
 
-public class CxfTypeSafeClientBuilder extends RestClientBuilder {
+public class CxfTypeSafeClientBuilder implements RestClientBuilder {
     private String baseUri;
     private Map<String, Object> properties;
     private List<Object> providers;
