@@ -107,6 +107,23 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>uk.co.deliverymind</groupId>
+                <artifactId>wiremock-maven-plugin</artifactId>
+                <version>2.7.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <dir>target/classes</dir>
+                            <params>--port=8765 --verbose</params>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.20</version>
                 <configuration>
@@ -117,6 +134,7 @@
                         <exclude>org.eclipse.microprofile.rest.client.tck.CallMultipleMappersTest</exclude>
                         <exclude>org.eclipse.microprofile.rest.client.tck.DefaultExceptionMapperTest</exclude>
                         <exclude>org.eclipse.microprofile.rest.client.tck.ExceptionMapperTest</exclude>
+                        <exclude>org.eclipse.microprofile.rest.client.tck.InvokeWithJsonPProviderTest</exclude>
                     </excludes>
                 </configuration>
             </plugin>
